@@ -18,6 +18,8 @@ import com.blog.exception.CommentException;
 import com.blog.exception.LoginException;
 import com.blog.exception.PostException;
 import com.blog.model.Comment;
+import com.blog.model.CommentDTO;
+import com.blog.model.CommentUpdateDTO;
 import com.blog.service.CommentService;
 
 @RestController
@@ -40,21 +42,22 @@ public class CommentController {
 	}
 
 	@PostMapping("/posts/{postId}/comments")
-	public ResponseEntity<Comment> createNewComment(@RequestBody Comment comment,
+	public ResponseEntity<Comment> createNewComment(@RequestBody CommentDTO comment,
 			@PathVariable("postId") Integer postId) throws PostException, CommentException, LoginException {
 		return new ResponseEntity<Comment>(commentService.createNewComment(postId, comment), HttpStatus.CREATED);
 	}
 
 	@PutMapping("/posts/{postId}/comments/{commentId}")
 	public ResponseEntity<Comment> updateCommentById(@PathVariable("postId") Integer postId,
-			@PathVariable("commentId") Integer commentId, @RequestBody Comment comment)
+			@PathVariable("commentId") Integer commentId, @RequestBody CommentUpdateDTO comment)
 			throws PostException, LoginException, CommentException {
 		return new ResponseEntity<Comment>(commentService.updateComment(postId, comment, commentId), HttpStatus.OK);
 	}
 
 	@DeleteMapping("/posts/{postId}/comments/{commentId}")
-	public ResponseEntity<Comment> deleteCommentById(Integer postId) throws PostException, LoginException {
-		return new ResponseEntity<Comment>(commentService.deleteCommentById(postId, postId), HttpStatus.OK);
+	public ResponseEntity<Comment> deleteCommentById(@PathVariable("postId") Integer postId, @PathVariable("commentId") Integer commentId)
+			throws PostException, LoginException, CommentException {
+		return new ResponseEntity<Comment>(commentService.deleteCommentById(postId, commentId), HttpStatus.OK);
 	}
 
 }

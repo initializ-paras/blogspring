@@ -21,5 +21,5 @@ public interface PostService {
 
 	public Post deletePostById(Integer postId) throws PostException, LoginException;
 
-	public List<Post> pagination(Integer pageSize, String sortBy) throws PostException;
+	public List<Post> pagination(Integer pageSize, String sortBy) throws PostException, LoginException;
 }

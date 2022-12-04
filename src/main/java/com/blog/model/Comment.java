@@ -1,6 +1,6 @@
 package com.blog.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,6 +18,6 @@ public class Comment {
 	private Integer id;
 	private Integer postId;
 	private String text;
-	private Date date;
+	private LocalDateTime date;
 
 }

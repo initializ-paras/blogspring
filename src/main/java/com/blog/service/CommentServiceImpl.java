@@ -1,5 +1,6 @@
 package com.blog.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,6 +11,8 @@ import com.blog.exception.CommentException;
 import com.blog.exception.LoginException;
 import com.blog.exception.PostException;
 import com.blog.model.Comment;
+import com.blog.model.CommentDTO;
+import com.blog.model.CommentUpdateDTO;
 import com.blog.model.Login;
 import com.blog.model.Post;
 import com.blog.repository.CommentRepo;
@@ -29,28 +32,31 @@ public class CommentServiceImpl implements CommentService {
 	private CommentRepo commentRepo;
 
 	// checking user login validation
-	public boolean checkLoginStatus() {
+	public void checkLoginStatus() throws LoginException {
 		List<Login> loginList = loginRepo.findAll();
 		if (loginList.isEmpty())
-			return false;
+			throw new LoginException("User login required!");
+	}
 
-		return true;
+	// checking valid postId
+	public Post checkValidPostId(Integer postId) throws PostException {
+		Optional<Post> postOpt = postRepo.findById(postId);
+		if (postOpt.isEmpty())
+			throw new PostException("Invalid post id");
+
+		return postOpt.get();
 	}
 
 	@Override
 	public List<Comment> getAllComment(Integer postId) throws PostException, CommentException, LoginException {
 		// TODO Auto-generated method stub
 
-		if (checkLoginStatus() == false)
-			throw new LoginException("User login required!");
+		checkLoginStatus();
+		Post post = checkValidPostId(postId);
 
-		Optional<Post> postOpt = postRepo.findById(postId);
-		if (postOpt.isEmpty())
-			throw new PostException("Invalid post id");
-
-		List<Comment> commentList = postOpt.get().getCommentList();
+		List<Comment> commentList = post.getCommentList();
 		if (commentList.isEmpty())
-			throw new CommentException("Empty comment list!");
+			throw new CommentException("No comments in this post");
 
 		return commentList;
 	}
@@ -58,69 +64,83 @@ public class CommentServiceImpl implements CommentService {
 	@Override
 	public Comment getCommentById(Integer postId, Integer commentId)
 			throws PostException, LoginException, CommentException {
-		// TODO Auto-generated method stub
 
-		if (checkLoginStatus() == false)
-			throw new LoginException("User login required!");
+		checkLoginStatus();
+		Post post = checkValidPostId(postId);
 
-		Optional<Post> postOpt = postRepo.findById(postId);
-		if (postOpt.isEmpty())
-			throw new PostException("Invalid post id");
-
-		List<Comment> commentList = postOpt.get().getCommentList();
+		List<Comment> commentList = post.getCommentList();
 		if (commentList.isEmpty())
-			throw new CommentException("Empty comment list!");
+			throw new CommentException("No comments in this post");
 
 		Optional<Comment> commentOpt = commentRepo.findById(commentId);
 		if (commentOpt.isEmpty())
 			throw new CommentException("Comment not found with " + commentId);
 
 		return commentOpt.get();
-
 	}
 
 	@Override
-	public Comment createNewComment(Integer postId, Comment comment)
+	public Comment createNewComment(Integer postId, CommentDTO comment)
 			throws PostException, LoginException, CommentException {
-		// TODO Auto-generated method stub
 
-		if (checkLoginStatus() == false)
-			throw new LoginException("User login required!");
+		checkLoginStatus();
+		Post post = checkValidPostId(postId);
 
-		Optional<Post> postOpt = postRepo.findById(postId);
-		if (postOpt.isEmpty())
-			throw new PostException("Invalid post id");
+		Comment newComment = new Comment();
+		newComment.setPostId(postId);
+		newComment.setDate(LocalDateTime.now());
+		newComment.setText(comment.getText());
 
-		return null;
+		List<Comment> commentList = post.getCommentList();
+		commentList.add(newComment);
+		post.setCommentList(commentList);
+
+		return commentRepo.save(newComment);
 	}
 
 	@Override
-	public Comment updateComment(Integer postId, Comment comment, Integer commentId)
+	public Comment updateComment(Integer postId, CommentUpdateDTO comment, Integer commentId)
 			throws PostException, LoginException, CommentException {
-		// TODO Auto-generated method stub
 
-		if (checkLoginStatus() == false)
-			throw new LoginException("User login required!");
+		checkLoginStatus();
+		Post post = checkValidPostId(postId);
 
-		Optional<Post> postOpt = postRepo.findById(postId);
-		if (postOpt.isEmpty())
-			throw new PostException("Invalid post id");
+		List<Comment> commentList = post.getCommentList();
+		if (commentList.isEmpty())
+			throw new CommentException("No comments in this post");
 
-		return null;
+		Optional<Comment> commentOpt = commentRepo.findById(commentId);
+		if (commentOpt.isEmpty())
+			throw new CommentException("Comment not found with " + commentId);
+
+		Comment updatedComment = commentOpt.get();
+		updatedComment.setId(commentId);
+		updatedComment.setDate(LocalDateTime.now());
+		updatedComment.setPostId(postId);
+		updatedComment.setText(comment.getText());
+
+		return commentRepo.save(updatedComment);
 	}
 
 	@Override
-	public Comment deleteCommentById(Integer postId, Integer commentId) throws PostException, LoginException {
-		// TODO Auto-generated method stub
+	public Comment deleteCommentById(Integer postId, Integer commentId)
+			throws PostException, LoginException, CommentException {
 
-		if (checkLoginStatus() == false)
-			throw new LoginException("User login required!");
+		checkLoginStatus();
+		Post post = checkValidPostId(postId);
 
-		Optional<Post> postOpt = postRepo.findById(postId);
-		if (postOpt.isEmpty())
-			throw new PostException("Invalid post id");
+		List<Comment> commentList = post.getCommentList();
+		if (commentList.isEmpty())
+			throw new CommentException("No comments in this post");
 
-		return null;
+		Optional<Comment> commentOpt = commentRepo.findById(commentId);
+		if (commentOpt.isEmpty())
+			throw new CommentException("Comment not found with " + commentId);
+
+		Comment deletedComment = commentOpt.get();
+		commentRepo.delete(deletedComment);
+		return deletedComment;
+
 	}
 
 }

@@ -32,12 +32,10 @@ public class PostServiceImpl implements PostService {
 	private LoginRepo loginRepo;
 
 	// checking user login validation
-	public boolean checkLoginStatus() {
+	public void checkLoginStatus() throws LoginException {
 		List<Login> loginList = loginRepo.findAll();
 		if (loginList.isEmpty())
-			return false;
-
-		return true;
+			throw new LoginException("User login required!");
 	}
 
 	// get current logged user id
@@ -56,35 +54,30 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public List<Post> getAllPost() throws PostException, LoginException {
-		// TODO Auto-generated method stub
-
-		if (checkLoginStatus() == false)
-			throw new LoginException("User login required!");
+		
+		checkLoginStatus();
 
 		List<Post> postList = postRepo.findAll();
 		if (postList.isEmpty())
 			throw new PostException("Post list is empty!");
-
 		return postList;
 	}
 
 	@Override
 	public Post getPostById(Integer postId) throws PostException, LoginException {
-		// TODO Auto-generated method stub
 
-		if (checkLoginStatus() == false)
-			throw new LoginException("User login required!");
+		checkLoginStatus();
 
 		Optional<Post> postOpt = postRepo.findById(postId);
 		if (postOpt.isEmpty())
 			throw new PostException("Post not found with this id " + postId);
-
 		return postOpt.get();
 	}
 
 	@Override
 	public Post createNewPost(PostDTO post) throws PostException, LoginException, UserException {
-		// TODO Auto-generated method stub
+		
+		checkLoginStatus();
 
 		if (post == null)
 			throw new PostException("Post can't be null!");
@@ -95,17 +88,15 @@ public class PostServiceImpl implements PostService {
 
 		int userId = getUserId();
 		newPost.setAuthorId(userId);
-		newPost.setDate(LocalDateTime.now());
+		newPost.setDate(LocalDateTime.now());		
 
 		return postRepo.save(newPost);
 	}
 
 	@Override
 	public Post updatePost(PostUpdateDTO post, Integer postId) throws PostException, LoginException, UserException {
-		// TODO Auto-generated method stub
 
-		if (checkLoginStatus() == false)
-			throw new LoginException("User login required!");
+		checkLoginStatus();
 
 		Optional<Post> postOpt = postRepo.findById(postId);
 		if (postOpt.isEmpty())
@@ -116,6 +107,7 @@ public class PostServiceImpl implements PostService {
 
 		int userId = getUserId();
 		Post updatedPost = postOpt.get();
+		updatedPost.setId(postId);
 		updatedPost.setAuthorId(userId);
 		updatedPost.setDate(LocalDateTime.now());
 
@@ -124,10 +116,8 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public Post deletePostById(Integer postId) throws PostException, LoginException {
-		// TODO Auto-generated method stub
 
-		if (checkLoginStatus() == false)
-			throw new LoginException("User login required!");
+		checkLoginStatus();
 
 		Optional<Post> postOpt = postRepo.findById(postId);
 		if (postOpt.isEmpty())
@@ -139,8 +129,9 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public List<Post> pagination(Integer pageSize, String sortBy) throws PostException {
-		// TODO Auto-generated method stub
+	public List<Post> pagination(Integer pageSize, String sortBy) throws PostException, LoginException {
+
+		checkLoginStatus();		
 		return null;
 	}
 
